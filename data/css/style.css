@@ -1,0 +1,429 @@
+html,
+body, html {
+  padding: 1px 1px;
+  font-family: Arial;
+  background-color: #2F4F4F;
+	box-sizing: border-box;
+}
+
+/* Navbar */
+.navbar {
+  overflow: hidden;
+  border: 2px solid #F0F8FF;
+  transition: 0.4s;
+	border-radius: 4px;
+  box-sizing: border-box;
+  width: 100%;
+	min-width: 340px;
+	max-width: 400px;
+}
+
+/* Links inside the navbar */
+.navbar a {
+  float: left;
+  overflow: hidden;
+  color: #F0F8FF;
+  padding: 10px 12px;
+	cursor: pointer;
+  transition: 0.4s;
+  font-size: 16px;
+  font-weight: bold;
+  width: 85px;
+	text-align: center;
+}
+
+/* Add a grey background color to navbar links on hover */
+.navbar a:hover {
+  background-color: #ddd;
+}
+
+.navbar a.active{
+  background-color: #FFC300;
+  color: black;
+}
+
+
+/* Style the tab content */
+.tabcontent {
+ /* overflow: hidden;*/
+  display: none;
+  padding: 4px;
+  border: 2px solid #F0F8FF;
+  border-top: none;
+	border-radius: 4px;
+  color: #F0F8FF;
+  box-sizing: border-box;
+  width: 100%;
+	min-width: 340px;
+	max-width: 400px;
+	height: auto;
+  max-height: 600px;
+} 
+
+ /* Paragraphs */
+.tabcontent p {
+  color: #F0F8FF;
+  font-size: 16px;
+  margin: 4px;
+}
+
+.btn-group {
+  overflow: hidden;
+  border: 2px solid #F0F8FF;
+	border-radius: 4px;
+  margin-bottom: 4px;
+  box-sizing: border-box;
+	width: 100%;
+}
+
+.btn-group button{
+  float: left;
+  text-align: center;
+  border: none;
+  outline: none;
+  padding: 10px 12px;
+  transition: 0.4s;
+	cursor: pointer;
+  color: #F0F8FF;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #2F4F4F;
+  width: 25%;
+  font-family: inherit; /* Important for vertical align on mobile phones */
+  margin: 0; /* Important for vertical align on mobile phones */
+}
+
+.btn-group button:hover{
+  background-color: #ddd;
+  color: #F0F8FF;
+}
+
+.btn-group button.active{
+  background-color:  #FFC300;
+  color: black;
+}
+
+input[type=text] {
+  border-radius: 4px;
+  width: 100%;
+  padding: 1px;
+  margin: 0px;
+  box-sizing: border-box;
+  border: 2px solid #F0F8FF;
+  font-size: 16px;
+}
+
+
+
+
+/* Dropdown button */
+.effectdropdownbutton {
+  overflow: hidden;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  border: 2px solid #F0F8FF;
+  color: #F0F8FF;	
+	cursor: pointer;
+  text-align: left;
+  padding: 10px 12px;
+  background-color: #2F4F4F;
+  width: 100%;
+	transition: 0.4s;
+  font-family: inherit; /* Important for vertical align on mobile phones */
+  margin: 0; /* Important for vertical align on mobile phones */
+}
+
+.effectdropdownbutton:hover {
+	background-color: #ddd;	
+}
+
+/* Dropdown background box (hidden by default) */
+.effectdropdowncontent {
+  display: none;
+  overflow: hidden;
+  position: absolute;
+  background-color: #2F4F4F;
+  border: 2px solid #F0F8FF;
+	border-radius: 4px;
+  width: 316px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+/* Dropdown background box content */
+.effectdropdowncontent a {
+  overflow: hidden;
+  float: left;
+  display: block;
+  color: #F0F8FF;
+	cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: 0.4s;
+  width: 100%;
+  padding: 10px 12px;
+}
+
+.effectdropdowncontent a:hover {
+  background-color: #ddd;
+}
+
+.show {
+	display: block;
+}
+
+.smallheadings {
+  font-size: 12px;
+  font-weight: normal;
+  text-align: center;
+}
+
+.valuefields {
+  font-size: 15px;
+  font-weight: normal;
+  text-align: left;
+	text-align: center;
+}
+
+.submitbutton {
+  display: block;
+  background-color: #FFC300;
+  cursor: pointer;
+  color: black;	
+  height: 20px;
+  width: 100%;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  border: none;
+  padding: 1px;
+  margin : 3px;
+}
+
+.submitbutton:hover {
+  background-color: #ddd;
+  color: #F0F8FF;
+}
+
+.submitbutton:active {
+  background-color: #33cc33;
+  color: black;
+}
+
+.submitbutton:disabled {
+  background-color: grey;
+  color: black;
+  cursor: default;
+}
+
+
+#motionbutton {
+  background-color: #2F4F4F;
+  color: #F0F8FF;
+	text-align: center;
+	font-weight: bold;
+  border-radius: 4px;	
+}
+
+#connectionbutton {
+  background-color: #b30000;
+  color: #F0F8FF;
+	text-align: center;
+	font-weight: bold;
+  border-radius: 4px;	
+	font-size: 12px;
+}
+
+#ControlSOC {
+  background-color: #2F4F4F;
+  color: #F0F8FF;
+	text-align: center;
+	font-weight: bold;
+  border-radius: 4px;	
+	font-size: 12px;
+}
+
+#defaultbutton{
+  background-color: #2F4F4F;
+  cursor: pointer;
+  color: #F0F8FF;
+	text-align: center;
+	font-weight: bold;
+  border-radius: 4px;
+}
+
+#defaultbutton:hover{
+  background-color: #ddd;
+  color: #F0F8FF;
+}
+
+#defaultbutton:active{
+  background-color: #33cc33;
+  color: black;
+}
+
+.messagefield {
+  font-size: 14px;
+  font-style: italic;
+  font-weight: normal;	
+}
+
+/* The container */
+.checkboxcontainer {
+  display: block;
+  position: relative;
+  padding-left: 20px;
+  margin-left: 5px;
+  margin-bottom: 3px;
+  margin-top: 3px;
+  cursor: pointer;
+  font-size: 16px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Hide the browser's default checkbox */
+.checkboxcontainer input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Create a custom checkbox */
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 16px;
+  width: 16px;
+  background-color: #eee;
+}
+
+/* On mouse-over, add a grey background color */
+.checkboxcontainer:hover input ~ .checkmark {
+  background-color: #ddd;
+}
+
+/* When the checkbox is checked, add a blue background */
+.checkboxcontainer input:checked ~ .checkmark {
+  background-color: #FFC300;
+}
+
+/* Create the checkmark/indicator (hidden when not checked) */
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+  text-align: center;
+}
+
+
+/* Show the checkmark when checked */
+.checkboxcontainer input:checked ~ .checkmark:after {
+  display: block;
+}
+
+/* Style the checkmark/indicator */
+.checkboxcontainer .checkmark:after {
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid black;
+  border-width: 0 2px 2px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+
+/* The container */
+.radiocontainer {
+  position: relative;
+  padding-left: 20px;
+  margin-bottom: 0.5em;
+  margin-top: 0.5em;
+  cursor: pointer;
+  font-size: 16px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Hide the browser's default radio button */
+.radiocontainer input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Create a custom radio button */
+.radiomark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 14px;
+  width: 14px;
+  background-color: #eee;
+  border-radius: 50%;
+}
+
+/* On mouse-over, add a grey background color */
+.radiocontainer:hover input ~ .radiomark {
+  background-color: #ddd;
+}
+
+/* When the radio button is checked, add a blue background */
+.radiocontainer input:checked ~ .radiomark {
+  background-color: #FFC300;
+}
+
+/* Create the indicator (the dot/circle - hidden when not checked) */
+.radiomark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the indicator (dot/circle) when checked */
+.radiocontainer input:checked ~ .radiomark:after {
+  display: block;
+}
+
+/* Style the indicator (dot/circle) */
+.radiocontainer .radiomark:after {
+  top: 4px;
+  left: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: black;
+}
+
+.optionmodetable {
+  width: 100%;
+  position: static;	
+  border: none;
+  text-align: left;
+  table-layout: fixed;
+	padding: 0px;
+	border-spacing: 5px 2px;
+}
+
+.statustable {
+  width: 100%;
+  position: static;	
+  border: none;
+  text-align: left;
+  table-layout: fixed;
+	border-spacing: 5px 0px;
+}
+
+
+
