@@ -291,8 +291,8 @@ void handleSetOptions(){
 		WriteSerial.Write(String("Reset requested via Controlpage\n"));
 		WebServer.send(200, "text/plain", "200: Reset confirmed!");  	
 		WriteSerial.Write(String("EEP Reset, lamp restart triggered!\n"));
-		EEP.Reset();	
 		delay(500);
+		EEP.Reset();
 		ESP.restart();
 		Known_Request = true; 
   }

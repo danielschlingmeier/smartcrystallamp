@@ -289,6 +289,7 @@ function submitReset(){
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
     if(consoleoutput) console.log("Reset request confirmed by lamp"); 
+		location.reload();
 	}
   };
   xhttp.open("POST", "setoptions", true);
@@ -296,7 +297,6 @@ function submitReset(){
   xhttp.send("reset=1"); 
   if(consoleoutput) console.log("Reset request send to lamp");	
 	locksubmits();
-	location.reload();
 }
 
 function submitRestart(){
@@ -304,12 +304,12 @@ function submitRestart(){
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
     if(consoleoutput) console.log("Restart request confirmed by lamp");
-	  
+		location.reload();
 	}
   };
   xhttp.open("POST", "setoptions", true);
   xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
   xhttp.send("restart=1"); 
   if(consoleoutput) console.log("Restart request send to lamp");	
-	location.reload();
+	
 }
