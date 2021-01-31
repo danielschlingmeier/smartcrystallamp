@@ -6,8 +6,8 @@
 //This file contains the class for the battery management, which means the Li-Ion Battery voltage & current monitor, 
 //state of charge (SOC) calculation and also the logic for the power and error LEDs
 
-#define WARNING_PIN D0                  //Define the pin to indicate low battery or other problems
-#define POWER_PIN D3                  //Define the pin to power on
+#define WARNING_PIN D3                  //Define the pin to indicate low battery or other problems
+#define POWER_PIN D0                  //Define the pin to power on
 #define NUM_BATTERY 3                 //Define the number of 18650 batteries
 #define POWER_CALLS_PER_SECOND 2
 #include <Adafruit_INA260.h>          //We include the adafruit ina 260 libraray necessary to operate the battery monitor IC via I2C Bus

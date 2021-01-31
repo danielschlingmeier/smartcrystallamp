@@ -46,12 +46,12 @@ function submithomewifi(){
 	var pattern = new RegExp("^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$");
 	if(pattern.test(document.getElementById("home_ip").value)) homeip=document.getElementById("home_ip").value;
 	else {
-		ip = "";
+		homeip = "";
 	  document.getElementById("home_ip").value = "";  //Clear the field to show the user, that we don't intend to accept the input
 	}
   if(pattern.test(document.getElementById("router_ip").value)) routerip=document.getElementById("router_ip").value;
 	else {
-		ip = "";
+		routerip = "";
 	  document.getElementById("router_ip").value = "";  //Clear the field to show the user, that we don't intend to accept the input
 	}
 	

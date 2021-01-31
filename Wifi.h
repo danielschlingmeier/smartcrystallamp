@@ -13,7 +13,7 @@ class Wifi {
     String home_password;                     //Password of the Wi-Fi network
     String hotspot_ssid;                      //SSID of the Lamp Hotspot
     String hotspot_password;                  //Password of the Lamp Hotspot
-		String HostName = "Crystal Lamp";         //Hostname shown in Wifi
+		String HostName = "Smart Crystal Lamp";         //Hostname shown in Wifi
 		
 		boolean DHCPoverwrite = false;
 		IPAddress homenetworkIP;                  //Homenetwork IP in case DHCP overide above is true
@@ -60,10 +60,11 @@ Wifi::Wifi(void):
 
 void Wifi::ConnectWifi(void) {
   //Step 1: At first we read the access data from the EEPROM
+	EEP.WriteEEPSerial();
   home_ssid = EEP.ReadString(0);
   home_password = EEP.ReadString(1);
-	if(EEP.ReadString(23)==""||EEP.ReadString(24)==""){   //When no homenetwork IP or homenetwork outer IP is stored, be use DHCP...
-		DHCPoverwrite = false;		
+	if(EEP.ReadString(23)==""||EEP.ReadString(24)==""){   //When no homenetwork IP or homenetwork outer IP is stored, we use DHCP...
+		DHCPoverwrite = false;	
 	} else {                                             	//if not, we overwrite the standard values above.
 	  DHCPoverwrite = true;	
 		homenetworkIP.fromString(EEP.ReadString(23));
@@ -79,7 +80,12 @@ void Wifi::ConnectWifi(void) {
   WriteSerial.Write(String("Home SSID: ")+home_ssid+String("\n")); 
   WriteSerial.Write(String("Home Password: "));  
   WriteSerial.WritePW(home_password);
-  WriteSerial.Write(String("\n"));  
+	WriteSerial.Write(String("\n")); 
+	if(DHCPoverwrite) {
+		WriteSerial.Write(String("DHCP Overwrite activated:\n"));
+		WriteSerial.Write(String("Home IP: ")+ EEP.ReadString(23)+String("\n"));
+		WriteSerial.Write(String("Home Gateway IP: ")+ EEP.ReadString(24)+String("\n"));
+	} else WriteSerial.Write(String("DHCP Overwrite deactivated.\n"));  
   WriteSerial.Write(String("Hotspot SSID: ")+hotspot_ssid+String("\n"));   
   WriteSerial.Write(String("Hotspot Password: ")); 
   WriteSerial.WritePW(String(hotspot_password));
@@ -194,19 +200,15 @@ void Wifi::saveHomeCredentials(String newhomessid, String newhomepassword, Strin
 		changes = true;    
 	}
 	
-	IPAddress newhomeIP, newrouterIP;         //We convert the newhome and router ip strings to objects
-	newhomeIP.fromString(newhomeip); 
-	newrouterIP.fromString(newrouterip);
-	
-	if(newhomeip==""&&DHCPoverwrite) {   //When no new IP has been transmitted, but there was one before, we switch off the DHCP overwrite and erase the EEP 
+	if(newhomeip==""&&EEP.ReadString(23)!="") {   //When no new IP has been transmitted, but there was one before, we switch off the DHCP overwrite and erase the EEP 
 		DHCPoverwrite	= false;
-		EEP.WriteString(23, newhomeip);   
-		EEP.WriteString(24, newrouterip);
+		EEP.WriteString(23, "");   
+		EEP.WriteString(24, "");
 		changes = true;  
-	} else if ((newhomeip!=""&&newrouterip!="")&&((newhomeIP!=homenetworkIP)||(newrouterIP!=homenetworkGatewayIP))){   //If home and gateway IP are given and not equal to the actual ones
+	} else if (((newhomeip!="")&&(newrouterip!=""))&&(newhomeip!=newrouterip)){   //If home and gateway IP are given and not equal to the actual ones
 		DHCPoverwrite	= true;
-    homenetworkIP = newhomeIP;
-		homenetworkGatewayIP = newrouterIP;
+    homenetworkIP.fromString(newhomeip);
+		homenetworkGatewayIP.fromString(newrouterip);
 		EEP.WriteString(23, newhomeip);   
 		EEP.WriteString(24, newrouterip);
 		changes = true;

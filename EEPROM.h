@@ -52,6 +52,7 @@ class EEP {
     uint8_t ReadValue8(byte);
     boolean WriteString(byte, String);
     String ReadString(byte);
+		void WriteEEPSerial(void);
 }EEP;
 
 EEP::EEP(void){
@@ -59,8 +60,8 @@ EEP::EEP(void){
 
 void EEP::Start(void){   
   EEPROM.begin(maxsize);    //We activate EEP access
-	if(ReadString(25) != "3LHgb25wfDpkdFL"){     //When the check string is not what we expect the EEP has not been written (first start), so we Reset() it	
-		WriteSerial.Write("EEP ROM has not been written before, reset initiated:\n");
+	if(ReadString(26) != "3LHgb25wfDpkdFL"){     //When the check string is not what we expect the EEP has not been written (first start), so we Reset() it	
+		WriteSerial.Write("EEP ROM has not been written before.\n");
 		Reset();
 	}
 }
@@ -76,7 +77,7 @@ void EEP::Commit(void){
 
 //Function to restore all standard values
 void EEP::Reset(void){
-  WriteSerial.Write("Resetting Wifi Credentials and Settings in EEPROM to default values\n");
+  WriteSerial.Write("Resetting EEPROM to default values (change via options page)...");
   WriteString(0, String(""));                   //Home Wifi Credentials
   WriteString(1, String(""));
   WriteString(2, String("CrystalNet"));         //Hotspot Credentials
@@ -102,9 +103,12 @@ void EEP::Reset(void){
 	WriteValue16(22, 2770);                       //Capacity: 2770 mAh
 	WriteString(23, "");                          //Homenetwork IP is not net, thus DHCP is used
 	WriteString(24, "");                          //Homenetwork Gateway IP is not net, thus DHCP is used
-	WriteString(24, "192.168.4.1");               //Hotspot Standard IP
-	WriteString(25, "3LHgb25wfDpkdFL");           //A random string used to check if the EEP has been written before. If not, standard values are taken
-  Commit(); 
+	WriteString(25, "192.168.4.1");               //Hotspot Standard IP
+	WriteString(26, "3LHgb25wfDpkdFL");           //A random string used to check if the EEP has been written before. If not, standard values are taken
+  Commit();                                     //Save to EEP
+	WriteSerial.Write("done!\n");
+  WriteEEPSerial();                             //Give a serial output 
+	
 }
 
 boolean EEP::WriteValue16(byte startidx, uint16_t value){
@@ -185,4 +189,44 @@ String EEP::ReadString(byte startidx){
     }
   }
   return(String(charoutput));
+}
+
+void EEP::WriteEEPSerial(void){
+	WriteSerial.Write(String("***EEP Content***\n"));
+	WriteSerial.Write(String("Wifi Parameters:\n"));
+	WriteSerial.Write(String("  Homenetwork:\n"));
+	WriteSerial.Write(String("    SSID: ") + ReadString(0)+ String("\n"));
+	WriteSerial.Write(String("    Password: ") + ReadString(1)+ String("\n")); 
+	WriteSerial.Write(String("    IP: ") + ReadString(23)+ String("\n"));
+	WriteSerial.Write(String("    Gateway IP: ") + ReadString(24)+ String("\n"));
+	WriteSerial.Write(String("  Hotspot:\n"));
+	WriteSerial.Write(String("    SSID: ") + ReadString(2)+ String("\n")); 
+	WriteSerial.Write(String("    Password: ") + ReadString(3)+ String("\n")); 
+	WriteSerial.Write(String("    IP: ") + ReadString(25)+ String("\n"));
+	WriteSerial.Write(String("  Connection Mode: ") + ReadValue8(4)+ String("\n\n"));
+	
+	WriteSerial.Write(String("Status LED deactivation:\n"));
+	WriteSerial.Write(String("  Power LED: ") + ReadValue8(5)+ String("\n"));
+	WriteSerial.Write(String("  Warning LED: ") + ReadValue8(6)+ String("\n\n"));
+	
+	WriteSerial.Write(String("Radar sensor connected: ") + ReadValue8(7)+ String("\n\n"));
+	
+	WriteSerial.Write(String("Soft Mode: ") + ReadValue8(8)+ String("\n"));
+	WriteSerial.Write(String("  Soft time: ") + ReadValue16(19)+ String("[s]\n\n"));
+	WriteSerial.Write(String("Motion Mode: ") + ReadValue8(9)+ String("\n"));
+	WriteSerial.Write(String("  Off time: ") + ReadValue16(10)+ String("[s]\n"));
+	WriteSerial.Write(String("  On Time: ") + ReadValue16(11)+ String("[s]\n"));
+	WriteSerial.Write(String("  Sleep Time: ") + ReadValue16(12)+ String("[s]\n\n"));
+	
+	WriteSerial.Write(String("Lamp start defaults:\n"));
+	WriteSerial.Write(String("  LED Mode: ") + ReadValue8(13)+ String("\n"));
+	WriteSerial.Write(String("  LED Effect: ") + ReadValue8(14)+ String("\n"));
+	WriteSerial.Write(String("  Effect Power: ") + ReadValue8(15)+ String("\n"));
+  WriteSerial.Write(String("  Color: R ") + ReadValue8(16)+ String("G ")+ ReadValue8(17)+ String("B ")+ ReadValue8(18) +String("\n\n"));
+	
+	WriteSerial.Write(String("Battery parameters:\n"));
+  WriteSerial.Write(String("  Full voltage: ") + ReadValue16(20)+ String("\n"));
+	WriteSerial.Write(String("  Empty voltage: ") + ReadValue16(21)+ String("\n"));
+	WriteSerial.Write(String("  Capacity: ") + ReadValue16(22)+ String("\n"));	
+	WriteSerial.Write(String("***EEP Content end!***\n\n"));
 }
