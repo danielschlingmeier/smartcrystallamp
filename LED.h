@@ -25,13 +25,14 @@ class LED {
 		CRGB leds[NUM_LEDS];                                   //We create our object to store the color information we want to write to the leds
     uint8_t CallsPerSecond = LED_CALLS_PER_SECOND;         //How often will FireStrip excute its calculations, regardless of the actual calling frequency in the loop()  
     uint32_t LastCall = 0;                                 //The time when the FireStrip function was called last time, used to control the frames per second properly
-    uint8_t Mode = 255;                                    //Mode, 1: Off, 2: Constant Color, 3: Effects, 255: initial
+    uint8_t Mode = 255;                                    //Mode, 1: Off, 2: Constant Color, 3: Effects, 4: Motion, 255: initial
     uint8_t Effect = 255;                                  //Effect, 0: Normal Fire, 1: Color Fire, 2 Pacifica,..., 255: initial
     uint8_t Power = 100;                                   //Effect power is used as input for the effect, can e.g. be brightness or whatever the effect needs
+		boolean Active = 0;                                    //Support variable 
 		uint8_t ColorPalette[MAX_COLOR_PALETTE_SIZE];
 		uint8_t ColorPaletteSize = 0;
 		
-		const uint8_t LedTable[8][8]{  		//LED position table (its not so easy to write a clever function for this, but feel free! I failed 
+		const uint8_t LedTable[8][8]{  		//LED position table (its not so easy to write a clever function for this instead of a table, but feel free! I failed :)
 			{ 7, 6, 5, 4, 3, 2, 1, 0},
 			{ 8, 9,10,11,12,13,14,15},
 			{23,22,21,20,19,18,17,16},
@@ -42,31 +43,34 @@ class LED {
 		  {56,57,58,59,60,61,62,63}
 		};
 		
-	  //Parameters belonging to the constant color
-    CRGB Color = 0x0000FF;                                 //initial color blue
-		boolean Soft_Mode = true;                              //Activates soft start function for single color mode
-    uint16_t Soft_Time = 1;                                //Soft start time in s (when soft soft mode is active) controls the time to reach full or zero brightness in Single color mode
+	  //Parameters belonging to the constant color effect
+    CRGB Color = 0x0000FF;      //initial color blue
+		boolean Soft_Mode = true;   //Activates soft start function for single color mode
+    uint16_t Soft_Time = 1;     //Soft start time in s (when soft soft mode is active) controls the time to reach full or zero brightness in Single color mode
 
-    //Parameters belonging to the fire effects
+    //Parameters belonging to the 2D fire effect
 		uint8_t Energy[NUM_STRIPS][NUM_LEDS_STRIP] = {{0}};    //Array for the current energy level of each LED
 		struct FireParameters{
-			uint8_t Cooling = 55;                //Cooling Coefficient, Default 55, suggested range 20-100 
-			uint8_t Sparking = 120;              //Sparking Probability, Default 120, suggested range 50-200.  
-			uint8_t minSparkPower = 80;          //
+			uint8_t Cooling = 55;             //Cooling Coefficient, Default 55, suggested range 20-100 
+			uint8_t Sparking = 120;           //Sparking Probability, Default 120, suggested range 50-200.  
+			uint8_t minSparkPower = 80;       //Sparking Power min and max values (when sparking occurs)
 			uint8_t maxSparkPower = 255;	
-			uint8_t minPower = 55;
+			uint8_t minPower = 55;            //min and max Effect Power
 			uint8_t maxPower = 255;
-			uint8_t Bottom = 3;                  //Defines how may cells are considered to be bottom aka heatable
+			uint8_t Bottom = 3;               //Defines how may cells are considered to be bottom aka heatable
 		} FireParams;
 		
-    //Internal helper functions
+		//Parameters belonging to the pacifica effect
+
+		
+    //Internal little helper functions
 		void LoadPalette(uint8_t[], uint8_t);   //Loads a gradient color palette from ColorPalettes.h into the used ColorPalette
 		void setAllLeds(CRGB);                  //Writes all Leds to the given color
 		CRGB InterpolateColor(uint8_t[], uint8_t, uint8_t);   //Interpolates the resulting color with the given gradient color palette
 		
     //Effect Functions
-		void Fire2D(void);              //Function to create a 2D fire effect
-		void Pacifica(void);
+		void Fire2D(void);              //Function to create the fire effect
+		void Pacifica(void);            //Function to create the Pacifica Effect
 		void PacificaOneLayer(CRGBPalette16& p, uint16_t , uint16_t , uint8_t , uint16_t);
 
   public:
@@ -74,7 +78,7 @@ class LED {
     void Start(void);             //Init function, sets up the LEDs and loads parameters from EEP
     void Run(void);
 	
-	//Interface functions for interaction with Web Interface
+	  //Interface functions for interaction with Web Interface
     void setLedMode(uint8_t);     //Set new mode, 1: Off, 2: Constant Color, 3: Effects, 255: initial
     uint8_t getLedMode(void);	    //Get the current mode (self explaining)
     void setEffect(uint8_t);      //Set new effect, 0: Normal Fire, 1: Color Fire, 2 Pacifica,..., 255: initial
@@ -87,7 +91,10 @@ class LED {
     boolean getSoftMode(void);    
     uint16_t getSoftTime(void);
     void setSoftTime(uint16_t);   
-    void saveOptions(void);       //Function to write the current options to EEP as default for next start
+		void setActive(boolean);
+		
+		//EEP save functions
+    void saveOptions(void);       //Function to write the current LED options to EEP
 		void saveDefault(void);       //Function to write the current control settings (color, power, mode, effect etc) to EEP as default for next start
 } LED;
 
@@ -106,7 +113,7 @@ void LED::Start(void){
   setSoftTime(EEP.ReadValue16(19));
 	setColor(CRGB(EEP.ReadValue8(16), EEP.ReadValue8(17), EEP.ReadValue8(18)));
 	
-  WriteSerial.Write(String("FastLED started\n\n"));  
+  WriteSerial.Write(String("FastLED started.\n\n"));  
 }
 
 void LED::Run(void){
@@ -116,11 +123,20 @@ void LED::Run(void){
 	external supply the LEDs draw the power from the USB. This can cause "strange" behaviour when the USB is protected and switches off, otherwise also hardware damage!*/
 	if(PowerSupply.isWarning()) setLedMode(0);  
 	
-	//We call the effects function that require periodic calls, you can add more effect here easily, just pick the next number
+	//We call the effects function that require periodic calls, you can add more effect here easily, just pick the next number and call your own function
 	if(Mode==2){                           
 		if(Effect==0||Effect==1) Fire2D();
 		if(Effect==2) Pacifica();
 	}
+	
+	if(Mode==3){
+		if(Active){
+			
+			
+		}
+			
+	}
+	
 
 	FastLED.show();     //Run FastLed
   LastCall=millis();  //Safe a new time stamp  
@@ -146,6 +162,9 @@ void LED::setLedMode(uint8_t NewMode){
 						ColorPalette[7] = Color.b;
 					}
 					break;
+				case 3:
+				  
+				  break;
 			}
 		}
 }
@@ -376,6 +395,10 @@ void LED::PacificaOneLayer( CRGBPalette16& p, uint16_t cistart, uint16_t wavesca
     CRGB c = ColorFromPalette( p, sindex8, bri, LINEARBLEND);
     leds[i] += c;
   }
+}
+
+void LED::setActive(boolean newActive){
+	Active = newActive;
 }
 
 
