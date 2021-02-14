@@ -1,27 +1,29 @@
 //*****************************************************************************************
-//**                              Crystal lamp project                                   **
+//**                              Crystal cyrstal lamp project                           **
 //*****************************************************************************************
-//This file belongs to the Crystal lamp project and is intended to work together with the other project files, not standalone!
+//This file belongs to the Smart crystal lamp project and is intended to work together with the other project files, not standalone!
 //
-//This file contains the function necessary to operate the file system and the webservers for HTTP, SSDP, mDNS and DNS
+//This file contains the function necessary to operate the file system and the webservers for HTTP, SSDP and mDNS
 //For those who might wonder: In contrast to most other modules I did not implement this as class, because this caused trouble with all the server
 //objects used here constantly.
 
 #include <ESP8266WebServer.h>   //Include WebServer library
-#include <LittleFS.h>           //Include SPIFFS library
+#include <LittleFS.h>           //Include LittleFS library
 #include <ESP8266SSDP.h>        //Include SSDP library
 #include <ESP8266mDNS.h>        //Include mDNS responder for Home Wifi (nor supported by Andriod :-()
 
 //Some definitions
 #define WEBSERVER_PORT 80
 
-
 //We create our webserver objects
 ESP8266WebServer WebServer(WEBSERVER_PORT);  
 
 //Global variables
-String mDNS_Name = "Crystal";        //This is the local webpage without .local, e.g. "Crystal.local" (mDNS Service)
-String SSDP_Name = "Crystal lamp";   //The name shown in Windows Network search (SSDP service)
+String mDNS_Name = "Crystal";                //This is the local webpage without .local, e.g. "Crystal.local" (mDNS Service)
+String SSDP_Name = "Smart Crystal Lamp";     //The basic information shown in Windows Network search (SSDP service)
+String SSDP_Model_Name = "Smart Crystal Lamp";
+String SSDP_Model_Version = "1.0";
+String SSDP_Manufacturer_Name = "Smart Crystal Lamp Project";
 
          
 //Our internal little helper functions
@@ -39,11 +41,12 @@ void handleGetWifi();                      //Handle function for states to Webin
 
 //This function starts up the WebServer
 void startWebServer(void){
-  //Start the Serial Peripheral Interface Flash File System (SPIFFS)
+  //Start the Flash File System (LittleFS)
   LittleFS.begin();                                        
   WriteSerial.Write(String("Flash File System (LittleFS) started, listing content:\n")); 
 	                          
-	Dir dir = LittleFS.openDir("/");            //List the files (only suppports one level of folders!)
+	//List the files (only suppports one level of folders!)
+	Dir dir = LittleFS.openDir("/");    
 	while (dir.next()) {
 		if(dir.isDirectory()){
 		WriteSerial.Write(String(dir.fileName())+String("\\")+String("\n"));
@@ -55,7 +58,6 @@ void startWebServer(void){
 		} else if (dir.isFile()) WriteSerial.Write(String(dir.fileName())+String(", ")+String(formatBytes(dir.fileSize()))+String("\n"));
 	}
 	WriteSerial.Write("\n");
-
 	
   //Start the HTTP Webserver
   WebServer.begin();                                      
@@ -77,29 +79,27 @@ void startWebServer(void){
   });  
   WriteSerial.Write(String("Webserver started!\n\n")); 
 
-  //Start "Simple Service Discovery Protocol (SSDP)
+  //Start "Simple Service Discovery Protocol (SSDP) setup...
   SSDP.setSchemaURL("description.xml");
   SSDP.setHTTPPort(WEBSERVER_PORT);
   SSDP.setName(SSDP_Name);
   SSDP.setSerialNumber(ESP.getChipId());
   SSDP.setURL("index.html");
-  SSDP.setModelName("");
-  SSDP.setModelNumber("");
-  SSDP.setModelURL("");
-  SSDP.setManufacturer("Crystal lamp project");
-  SSDP.setManufacturerURL("https://github.com/danielschlingmeier");
+  SSDP.setModelName(SSDP_Model_Name);
+  SSDP.setModelNumber(SSDP_Model_Version);
+  SSDP.setModelURL("https://github.com/danielschlingmeier/smartcrystallamp");
+  SSDP.setManufacturer(SSDP_Manufacturer_Name);
+  SSDP.setManufacturerURL("");
   SSDP.setDeviceType("upnp:rootdevice");
-  SSDP.begin();
+	
+  SSDP.begin();  //..and start up the whole thing
   
   WriteSerial.Write(String("Simple Service Discovery Protocol (SSDP) started!\n\n"));
 	
   //Start the mDNS Server
 	if (!MDNS.begin(mDNS_Name)) WriteSerial.Write("Error setting up MDNS responder!\n");
   else WriteSerial.Write("mDNS responder started!\n\n");
-	
-	//Start the DNS Server
-	
-	
+
 }
 
 //Helper function for content type declaration on the file system
@@ -129,10 +129,9 @@ String formatBytes(size_t bytes) {
 
 void handleSetControl(){
   //This function handles all commands send by the control webpage. It checks for known requests, but not always for a valid content 
-  //(unless data type overlfows e.g. when converting int to boolean. The setXYZ() function check for validity and we ask the 
-  //corresponding setXYZ() function was really has been accepted.
+  //(unless data type overlfows e.g. when converting int to boolean. ThesetXYZ() functions have to check for validity
   
-  boolean Known_Request = false;      //Temporary variable to check if a valid request has been received.
+  boolean Known_Request = false;      //Temporary variable to check if at least one valid request has been received.
 
   if(WebServer.hasArg("mode")){ //Change mode
 		if((LED.getLedMode()==3)&&(WebServer.arg("mode").toInt()!=3)) LED.endMotionMode();
@@ -197,8 +196,7 @@ void handleGetControl(){    //Function to send the variables for the control tab
 
 void handleSetOptions(){
   //This function handles the options changes send by the control webpage. It checks for known requests, but not always for a valid content 
-  //,unless data type overflows e.g. when converting int to boolean. The setXYZ() functions called from here are checking for validity and we ask the 
-  //corresponding getXYZ() function was really has been accepted.
+  //(unless data type overlfows e.g. when converting int to boolean. ThesetXYZ() functions have to check for validity
   
   boolean Known_Request = false;      //Temporary variable to check if a valid request has been received.
 
@@ -282,7 +280,7 @@ void handleSetOptions(){
   if(WebServer.hasArg("save")){ //EPP save request
 		LED.saveOptions();          //Save LED Options
 	  PowerSupply.saveOptions();  //Save Power Supply Options
-    Radar.saveOptions();      //Save Radar / Motion Sensor Options
+    Radar.saveOptions();        //Save Radar / Motion Sensor Options
     WriteSerial.Write(String("Options save requested via Controlpage\n"));
     WebServer.send(200, "text/plain", "200: New options saved!");
     Known_Request = true;     
@@ -339,7 +337,7 @@ void handleGetOptions(){    //Function to send the variables for the options tab
 
 void handleSetWifi(){
   /*This function handles the wifi options changes send by the control webpage. It checks for known requests, but not always for a valid content 
-  ,unless data type overflows e.g. when converting int to boolean. The setXYZ() methods of the affected modules called from here have to check the validity of the content*/
+  (unless data type overlfows e.g. when converting int to boolean. ThesetXYZ() functions have to check for validity*/
   
   boolean Known_Request = false;      //Temporary variable to check if at least one valid request has been received.
 
@@ -363,7 +361,6 @@ void handleSetWifi(){
     WebServer.send(200, "text/plain", "200: New Connection mode set!");    
     Known_Request = true; 
   }
-  
   
   if(WebServer.hasArg("save")){ //Save settings to EEP
     Wifi.saveWifi();
