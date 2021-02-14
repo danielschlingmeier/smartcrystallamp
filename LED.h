@@ -28,7 +28,9 @@ class LED {
     uint8_t Mode = 255;                                    //Mode, 1: Off, 2: Constant Color, 3: Effects, 4: Motion, 255: initial
     uint8_t Effect = 255;                                  //Effect, 0: Normal Fire, 1: Color Fire, 2 Pacifica,..., 255: initial
     uint8_t Power = 100;                                   //Effect power is used as input for the effect, can e.g. be brightness or whatever the effect needs
-		boolean Active = 0;                                    //Support variable 
+		boolean Active = 0;     
+		uint8_t SilentMode = 255;                                //Mode, 1: Off, 2: Constant Color, 3: Effects, 4: Motion, 255: initial
+		//Support variable for motion mode
 		uint8_t ColorPalette[MAX_COLOR_PALETTE_SIZE];
 		uint8_t ColorPaletteSize = 0;
 		
@@ -92,6 +94,7 @@ class LED {
     uint16_t getSoftTime(void);
     void setSoftTime(uint16_t);   
 		void setActive(boolean);
+		void endMotionMode(void);  //The purpose of this function is no enforce a new silent mode externally in order to switch back from motion mode back to other effects
 		
 		//EEP save functions
     void saveOptions(void);       //Function to write the current LED options to EEP
@@ -131,13 +134,17 @@ void LED::Run(void){
 	
 	if(Mode==3){
 		if(Active){
-			
-			
+			setLedMode(SilentMode);
+			if(SilentMode==2){
+				if(Effect==0||Effect==1) Fire2D();
+				if(Effect==2) Pacifica();			
+			}
+		} else {
+			setAllLeds(CRGB::Black);
 		}
-			
 	}
-	
 
+	
 	FastLED.show();     //Run FastLed
   LastCall=millis();  //Safe a new time stamp  
   }  
@@ -145,32 +152,46 @@ void LED::Run(void){
 
 //What ever has to happend, when the mode is changed is done here
 void LED::setLedMode(uint8_t NewMode){
-	if(PowerSupply.isWarning()) NewMode = 0;
-		if(NewMode != Mode){
-			Mode = NewMode;
-			switch(Mode){       //We have to change some stuff, when the mode is changed.
-				case 0:           //Switch all LEDs off
-					setAllLeds(CRGB::Black);
-					break;
-				case 1:           //Set constant color
-					setAllLeds(Color);
-					break;
-				case 2:         
-					if(Effect == 1){	   //When Color Fire is selected, we set the inner color of the color fire palette
-						ColorPalette[5] = Color.r;
-						ColorPalette[6] = Color.g;
-						ColorPalette[7] = Color.b;
-					}
-					break;
-				case 3:
-				  
-				  break;
-			}
+	if(NewMode != Mode){
+		switch(NewMode){       //We have to change some stuff, when the mode is changed.
+			case 0:           //Switch all LEDs off
+				setAllLeds(CRGB::Black);
+				if(SilentMode==255) Mode = NewMode;
+				break;
+			case 1:           //Set constant color
+				setAllLeds(Color);
+				if(SilentMode==255) Mode = NewMode;
+				break;
+			case 2:         
+				if(Effect == 1){	   //When Color Fire is selected, we set the inner color of the color fire palette
+					ColorPalette[5] = Color.r;
+					ColorPalette[6] = Color.g;
+					ColorPalette[7] = Color.b;
+				}
+				if(SilentMode==255) Mode = NewMode;
+				break;
+			case 3:  //Motion Mode means we read the saved LED options from LED and the radar function will coordinate the on/off behaviour
+				setEffect(EEP.ReadValue8(14));        
+				setPower(EEP.ReadValue8(15));  
+				setColor(CRGB(EEP.ReadValue8(16), EEP.ReadValue8(17), EEP.ReadValue8(18)));
+        if(SilentMode==255) {  //We selected the first time, we set the defaults from EEP and the SilentMode
+					SilentMode = EEP.ReadValue8(13);   
+					setEffect(EEP.ReadValue8(14));        
+					setPower(EEP.ReadValue8(15));  
+					setColor(CRGB(EEP.ReadValue8(16), EEP.ReadValue8(17), EEP.ReadValue8(18)));
+					Mode = NewMode;
+					Serial.print("Switched to Silent Mode: ");
+					Serial.println(SilentMode);
+					Serial.print("Mode: ");
+					Serial.println(Mode);					
+				}                                             
+				break;
 		}
+	}
 }
 
 uint8_t LED::getLedMode(void){
-  return(Mode);
+	return(Mode);
 }
 
 
@@ -185,7 +206,7 @@ void LED::setEffect(uint8_t NewEffect){
 				LoadPalette(ColorFire, sizeof(ColorFire));
 				setColor(Color);   //We recall setColor() here in order to overwrite the loaded ColorFire Palette with the selected color
         break;  
-      case 2:   //Witching
+      case 2:   //Pacifica, but nothing to do here
   
         break;
       case 3:   //Magic
@@ -274,6 +295,18 @@ void LED::setAllLeds(CRGB LedColor){
 	for(uint8_t i=0;i<(NumStrips*NumLedsStrip); i++) {  
 		leds[i] = LedColor;
 	}  
+}
+
+void LED::setActive(boolean newActive){
+	Active = newActive;
+}
+
+void LED::endMotionMode(void){
+	SilentMode = 255;
+					Serial.print("Switched to Silent Mode: ");
+					Serial.println(SilentMode);
+					Serial.print("Mode: ");
+					Serial.println(Mode);			
 }
 
 CRGB LED::InterpolateColor(uint8_t palette[], uint8_t palette_size, uint8_t value){
@@ -397,9 +430,7 @@ void LED::PacificaOneLayer( CRGBPalette16& p, uint16_t cistart, uint16_t wavesca
   }
 }
 
-void LED::setActive(boolean newActive){
-	Active = newActive;
-}
+
 
 
 

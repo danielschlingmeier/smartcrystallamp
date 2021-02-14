@@ -57,7 +57,7 @@ function getOptions(){
 	  if(answer.batterysensconnected == 0) document.getElementById("batterySensConnected").checked = false;  //Battery sensor connected checkbox
 	  else document.getElementById("batterySensConnected").checked = true;
 	  
-	  if(answer.radradarsensconnected > 0){
+	  if(answer.radarsensconnected == 1){
 		if(answer.motionmode == 0) document.getElementById("mmNone").checked = true;      //Motion mode radio button
 		else if(answer.motionmode == 1) document.getElementById("mmOff").checked = true;
 		else if(answer.motionmode == 2) document.getElementById("mmOn").checked = true;	  

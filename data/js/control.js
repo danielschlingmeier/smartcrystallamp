@@ -30,19 +30,27 @@ function getControl() {
 
 	  
 		//We update the control page
-		if(answer.mode=="0"){  	                                            //Effecf Mode buttons update
+		if(answer.mode=="0"){  	                                            //Effect Mode buttons update
 		  document.getElementById("offButton").className = "active";
 		  document.getElementById("colorButton").className = "";
 		  document.getElementById("effectButton").className = "";
+			document.getElementById("motionButton").className = "";
 	  } else if (answer.mode=="1"){		  
 		  document.getElementById("offButton").className = "";
 		  document.getElementById("colorButton").className = "active";
-		  document.getElementById("effectButton").className = "";		  	  
+		  document.getElementById("effectButton").className = "";		 
+			document.getElementById("motionButton").className = "";			
 	  } else if (answer.mode=="2"){
 		  document.getElementById("offButton").className = "";
 		  document.getElementById("colorButton").className = "";
-		  document.getElementById("effectButton").className = "active";	  
-	  }	  
+		  document.getElementById("effectButton").className = "active";	 			
+			document.getElementById("motionButton").className = ""; 
+	  }	else if (answer.mode=="3"){
+			document.getElementById("offButton").className = "";
+		  document.getElementById("colorButton").className = "";
+		  document.getElementById("effectButton").className = "";	 			
+			document.getElementById("motionButton").className = "active"; 		
+		}			
 		
 		colorPicker.color.rgb = { r: answer.r, g: answer.g, b: answer.b };         //Colorpicker
 		

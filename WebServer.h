@@ -135,6 +135,7 @@ void handleSetControl(){
   boolean Known_Request = false;      //Temporary variable to check if a valid request has been received.
 
   if(WebServer.hasArg("mode")){ //Change mode
+		if((LED.getLedMode()==3)&&(WebServer.arg("mode").toInt()!=3)) LED.endMotionMode();
     LED.setLedMode(WebServer.arg("mode").toInt());
     WriteSerial.Write(String("LED mode ") + String(LED.getLedMode()) + String(" set via Controlpage\n"));
     WebServer.send(200, "text/plain", "200: New LED mode set!"); 
@@ -279,7 +280,7 @@ void handleSetOptions(){
   }
   
   if(WebServer.hasArg("save")){ //EPP save request
-	LED.saveOptions();          //Save LED Options
+		LED.saveOptions();          //Save LED Options
 	  PowerSupply.saveOptions();  //Save Power Supply Options
     Radar.saveOptions();      //Save Radar / Motion Sensor Options
     WriteSerial.Write(String("Options save requested via Controlpage\n"));
@@ -287,7 +288,7 @@ void handleSetOptions(){
     Known_Request = true;     
   }
 	
-		if(WebServer.hasArg("reset")){ //Reset request
+	if(WebServer.hasArg("reset")){ //Reset request
 		WriteSerial.Write(String("Reset requested via Controlpage\n"));
 		WebServer.send(200, "text/plain", "200: Reset confirmed!");  	
 		WriteSerial.Write(String("EEP Reset, lamp restart triggered!\n"));
