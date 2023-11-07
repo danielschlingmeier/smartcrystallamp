@@ -1,7 +1,7 @@
 //*****************************************************************************************
-//**                              Crystal lamp project                                   **
+//**                              Smart crystal lamp project                             **
 //*****************************************************************************************
-//This file belongs to the Crystal lamp project and is intended to work together with the other project files, not standalone!
+//This file belongs to the Smart crystal lamp project and is intended to work together with the other project files, not standalone!
 
 //This file contains the function necessary to manage the configuration data in the EEPROM
 #include <EEPROM.h>       //Include the EEPROM library
@@ -9,7 +9,7 @@
 class EEP {
   private:
     uint16_t maxsize = 240;     //The maximum size of the EEPROM content in byte, need to be bigger than the last address below :)
-    byte MemMap[28] = {0, 33, 66, 99, 132, 133, 134, 135, 136, 137, 138, 140, 142, 144, 145, 146, 147, 148, 149, 150, 152, 154, 156, 158, 179, 200, 221, 237};   //This array contains the start addresses in th EEPROM
+    byte MemMap[29] = {0, 33, 66, 99, 132, 133, 134, 135, 136, 137, 138, 140, 142, 144, 145, 146, 147, 148, 149, 150, 152, 154, 156, 158, 179, 200, 221, 237, 238};   //This array contains the start addresses in th EEPROM
     byte maxlength = 32;
     //Index (starting with 0!)
     //0: home_ssid [32+1],             0
@@ -39,35 +39,35 @@ class EEP {
 		//24: Homenetwork router IP [21]   179
 		//25: Hotspot IP [21]              200
 		//26: Blank EEP check string [16]  221
-    //27: Endstop sign (no data starting here!), 237
+		//27: Silent Mode [1]              237  
+    //28: Endstop sign (no data starting here!), 238
+		
+		String EEP_Check = "3LHgb25wfDpkdFL";  //A random string used to check if the EEP has been written before. 
+		
   public:
     EEP(void);
-    void Start(void);
-    void End(void);
-    void Commit(void);
-    void Reset(void);
-    boolean WriteValue16(byte, uint16_t);
+    void Start(void);           //Start function to be called in setup()      
+    void Commit(void);          //Function to initial the EEP Writing
+    void Reset(void);           //Reset EEP content to default
+		void WriteEEPSerial(void);  //Function to list the EEP content as serial output, mostly for debugging purpose
+    boolean WriteValue16(byte, uint16_t);  //Functions to read and write uint8_t, uint16_t and string to and from EEP
     uint16_t ReadValue16(byte);
     boolean WriteValue8(byte, uint8_t);
     uint8_t ReadValue8(byte);
     boolean WriteString(byte, String);
     String ReadString(byte);
-		void WriteEEPSerial(void);
-}EEP;
+
+} EEP;
 
 EEP::EEP(void){
 }
 
 void EEP::Start(void){   
   EEPROM.begin(maxsize);    //We activate EEP access
-	if(ReadString(26) != "3LHgb25wfDpkdFL"){     //When the check string is not what we expect the EEP has not been written (first start), so we Reset() it	
+	if(ReadString(26) != EEP_Check){     //When the check string is not what we expect the EEP has not been written (first start), so we Reset() it	
 		WriteSerial.Write("EEP ROM has not been written before.\n");
 		Reset();
 	}
-}
-
-void EEP::End(void){
-  EEPROM.end();   
 }
 
 //Function to restore all standard values
@@ -104,7 +104,8 @@ void EEP::Reset(void){
 	WriteString(23, "");                          //Homenetwork IP is not net, thus DHCP is used
 	WriteString(24, "");                          //Homenetwork Gateway IP is not net, thus DHCP is used
 	WriteString(25, "192.168.4.1");               //Hotspot Standard IP
-	WriteString(26, "3LHgb25wfDpkdFL");           //A random string used to check if the EEP has been written before. If not, standard values are taken
+	WriteString(26, EEP_Check);                   //A random string used to check if the EEP has been written before. If not, standard values are taken
+	WriteValue8(27, 255);                         //Silent LED Mode: 255, used internally 
   Commit();                                     //Save to EEP
 	WriteSerial.Write("done!\n");
   WriteEEPSerial();                             //Give a serial output 
@@ -220,9 +221,10 @@ void EEP::WriteEEPSerial(void){
 	
 	WriteSerial.Write(String("Lamp start defaults:\n"));
 	WriteSerial.Write(String("  LED Mode: ") + ReadValue8(13)+ String("\n"));
+	WriteSerial.Write(String("  Silent LED Mode: ") + ReadValue8(27)+ String("\n"));
 	WriteSerial.Write(String("  LED Effect: ") + ReadValue8(14)+ String("\n"));
 	WriteSerial.Write(String("  Effect Power: ") + ReadValue8(15)+ String("\n"));
-  WriteSerial.Write(String("  Color: R ") + ReadValue8(16)+ String("G ")+ ReadValue8(17)+ String("B ")+ ReadValue8(18) +String("\n\n"));
+  WriteSerial.Write(String("  Color: R") + ReadValue8(16)+ String(" G")+ ReadValue8(17)+ String(" B")+ ReadValue8(18) +String("\n\n"));
 	
 	WriteSerial.Write(String("Battery parameters:\n"));
   WriteSerial.Write(String("  Full voltage: ") + ReadValue16(20)+ String("\n"));

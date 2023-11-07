@@ -115,7 +115,6 @@ void LED::Start(void){
   setSoftMode(EEP.ReadValue8(8));  
   setSoftTime(EEP.ReadValue16(19));
 	setColor(CRGB(EEP.ReadValue8(16), EEP.ReadValue8(17), EEP.ReadValue8(18)));
-	
   WriteSerial.Write(String("FastLED started.\n\n"));  
 }
 
@@ -152,18 +151,18 @@ void LED::Run(void){
 
 //What ever has to happend, when the mode is changed is done here
 void LED::setLedMode(uint8_t NewMode){
-	if(NewMode != Mode){
+	if(NewMode != Mode){     //In order to keep computational load as low as possible, we one do something here, when a new mode is set unequal to the current one
 		switch(NewMode){       //We have to change some stuff, when the mode is changed.
-			case 0:           //Switch all LEDs off
+			case 0:              //Switch all LEDs off
 				setAllLeds(CRGB::Black);
-				if(SilentMode==255) Mode = NewMode;
+				if(SilentMode==255) Mode = NewMode;   
 				break;
-			case 1:           //Set constant color
+			case 1:              //Set constant color
 				setAllLeds(Color);
 				if(SilentMode==255) Mode = NewMode;
 				break;
 			case 2:         
-				if(Effect == 1){	   //When Color Fire is selected, we set the inner color of the color fire palette
+				if(Effect == 1){	 //When Color Fire is selected, we set the inner color of the color fire palette
 					ColorPalette[5] = Color.r;
 					ColorPalette[6] = Color.g;
 					ColorPalette[7] = Color.b;
@@ -174,7 +173,7 @@ void LED::setLedMode(uint8_t NewMode){
 				setEffect(EEP.ReadValue8(14));        
 				setPower(EEP.ReadValue8(15));  
 				setColor(CRGB(EEP.ReadValue8(16), EEP.ReadValue8(17), EEP.ReadValue8(18)));
-        if(SilentMode==255) {  //We selected the first time, we set the defaults from EEP and the SilentMode
+        if(SilentMode==255) {  //When selected the first time, we set the defaults from EEP and the SilentMode
 					SilentMode = EEP.ReadValue8(13);   
 					setEffect(EEP.ReadValue8(14));        
 					setPower(EEP.ReadValue8(15));  
@@ -276,6 +275,7 @@ void LED::saveDefault(void){
   EEP.WriteValue8(16, Color.r);
   EEP.WriteValue8(17, Color.g);  
   EEP.WriteValue8(18, Color.b); 
+	EEP.WriteValue8(27, SilentMode);  
   EEP.Commit();
   WriteSerial.Write(String("LED start default values saved to EEP\n\n"));  	
 }
